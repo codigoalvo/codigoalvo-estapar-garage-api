@@ -1,0 +1,32 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001
+      author: cassio
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/001-create-sector.sql
+            relativeToChangelogFile: false
+
+  - changeSet:
+      id: 002
+      author: cassio
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/002-create-spot.sql
+            relativeToChangelogFile: false
+
+  - changeSet:
+      id: 003
+      author: cassio
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/003-create-parking-event.sql
+            relativeToChangelogFile: false
+
+  - changeSet:
+      id: 004
+      author: cassio
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/004-create-revenue-log.sql
+            relativeToChangelogFile: false

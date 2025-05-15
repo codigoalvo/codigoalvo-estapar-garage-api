@@ -1,0 +1,6 @@
+CREATE TABLE spot (
+    id UUID PRIMARY KEY,
+    sector_id UUID NOT NULL REFERENCES sector(id),
+    lat DOUBLE PRECISION NOT NULL,
+    lng DOUBLE PRECISION NOT NULL
+);

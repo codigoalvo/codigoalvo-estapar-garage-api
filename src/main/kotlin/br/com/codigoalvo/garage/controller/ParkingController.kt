@@ -13,7 +13,6 @@ class ParkingController {
     @PostMapping("/spot-event")
     fun receiveSpotEvent(@RequestBody payload: String): ResponseEntity<String> {
         logger.info("Recebido evento de vaga: $payload")
-        // Aqui podemos processar o JSON recebido mais tarde, por enquanto só loga
         return ResponseEntity.ok("Evento recebido")
     }
 

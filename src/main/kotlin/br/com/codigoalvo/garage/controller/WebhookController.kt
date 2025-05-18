@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/teste")
+@RequestMapping("/webhook")
 class WebhookController(
     private val logger: Logger = LoggerFactory.getLogger(WebhookController::class.java)
 ) {

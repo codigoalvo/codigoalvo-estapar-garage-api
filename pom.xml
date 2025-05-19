@@ -56,10 +56,18 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <version>${kotlin.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-reflect</artifactId>
+            <version>${kotlin.version}</version>
+        </dependency>
+        <!-- Adicionando explicitamente o plugin no-arg -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-maven-noarg</artifactId>
+            <version>${kotlin.version}</version>
         </dependency>
 
         <!-- Testes -->
@@ -101,26 +109,29 @@
                     <jvmTarget>21</jvmTarget>
                     <compilerPlugins>
                         <plugin>spring</plugin>
+                        <plugin>no-arg</plugin>
+                        <plugin>all-open</plugin>
                     </compilerPlugins>
                     <pluginOptions>
+                        <!-- Configurações all-open -->
                         <option>all-open:annotation=org.springframework.stereotype.Component</option>
                         <option>all-open:annotation=org.springframework.transaction.annotation.Transactional</option>
                         <option>all-open:annotation=org.springframework.context.annotation.Configuration</option>
                         <option>all-open:annotation=org.springframework.boot.test.context.SpringBootTest</option>
+                        <!-- Configurações no-arg -->
+                        <option>no-arg:annotation=jakarta.persistence.Entity</option>
+                        <option>no-arg:annotation=jakarta.persistence.MappedSuperclass</option>
+                        <option>no-arg:annotation=jakarta.persistence.Embeddable</option>
                     </pluginOptions>
                 </configuration>
-            </plugin>
-
-            <!-- All-open (para Spring funcionar com Kotlin) -->
-            <plugin>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-allopen</artifactId>
-                <version>${kotlin.version}</version>
-                <configuration>
-                    <annotation>org.springframework.stereotype.Component</annotation>
-                    <annotation>org.springframework.transaction.annotation.Transactional</annotation>
-                    <annotation>org.springframework.context.annotation.Configuration</annotation>
-                </configuration>
+                <dependencies>
+                    <!-- Garantindo que o plugin no-arg está disponível -->
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-noarg</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 
             <!-- Spring Boot -->

@@ -30,3 +30,7 @@ server:
 logging:
   level:
     org.springframework: INFO
+
+garage:
+  simulator:
+    url: http://localhost:3000

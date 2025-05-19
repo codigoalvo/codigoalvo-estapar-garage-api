@@ -87,8 +87,90 @@ docker-compose up -d
 - Expor endpoints de consulta para status de placas e vagas
 - Criar testes automatizados
 
+
+## Integração com o Simulador ESTAPAR via Proxy NGINX
+
+Para que sua aplicação receba corretamente os eventos simulados pelo container `garage-sim`, é necessário que ela esteja disponível no endereço `http://localhost:3003/webhook`. No entanto, como sua aplicação principal roda na porta `8080`, foi criado um **proxy reverso com NGINX** para redirecionar essas chamadas.
+
+### Objetivo
+
+Permitir que o simulador, rodando em container Docker, envie requisições para `localhost:3003/webhook` e estas sejam corretamente redirecionadas para `localhost:8080/webhook`, onde a aplicação Spring Boot escuta.
+
+### Estrutura da Pasta `proxy/`
+
+```bash
+proxy/
+├── nginx-config/
+│   └── default.conf         # Configuração do NGINX para proxy reverso
+├── run-services.cmd         # Script para Windows para subir os serviços
+├── run-services.sh          # Script para Linux para subir os serviços
+├── stop-services.cmd        # Script para Windows para parar os serviços
+└── stop-services.sh         # Script para Linux para parar os serviços
+```
+
+### Liberação de Porta (Windows)
+
+Certifique-se de que a porta `3003` está liberada no firewall. Execute o seguinte comando no PowerShell como Administrador:
+
+```powershell
+New-NetFirewallRule -DisplayName "Allow Port 3003" -Direction Inbound -LocalPort 3003 -Protocol TCP -Action Allow
+```
+
+### Subindo os Containers
+
+#### Windows
+
+```bash
+cd proxy
+run-services.cmd
+```
+
+#### Linux/Mac
+
+```bash
+cd proxy
+chmod +x run-services.sh
+./run-services.sh
+```
+
+Durante a execução, será solicitado o IP local da máquina (detecção automática oferecida no Windows). Esse IP é necessário para o container Docker conseguir resolver o nome `localhost` corretamente.
+
+### Parando os Containers
+
+#### Windows
+
+```bash
+cd proxy
+stop-services.cmd
+```
+
+#### Linux/Mac
+
+```bash
+cd proxy
+chmod +x stop-services.sh
+./stop-services.sh
+```
+
+### Configuração da Aplicação
+
+No arquivo `application.yml`, a aplicação está configurada para escutar em todas as interfaces (`0.0.0.0`) e na porta `8080`:
+
+```yaml
+server:
+  port: 8080
+  address: 0.0.0.0
+```
+
+Isso garante que o proxy NGINX possa alcançar a aplicação, mesmo quando esta estiver sendo executada dentro da IDE.
+
+### Observações
+
+- Essa abordagem **não exige que a aplicação Spring rode em container**, o que facilita o debug e desenvolvimento local.
+- O NGINX atua como intermediário transparente, sendo uma solução robusta e multiplataforma para contornar limitações de rede entre containers Docker e serviços locais.
+
 ## Contato
 
-Cassio Reinaldo Amaral 
+Cassio Reinaldo Amaral
 Analista Desenvolvedor Backend Kotlin/Java  
 Email: codigoalvo@gmail.com

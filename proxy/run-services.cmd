@@ -1,41 +1,37 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Configurações
+:: Configuracoes
 set PROXY_NAME=nginx-proxy-estapar
 set GARAGE_SIM_NAME=garage-sim
 set NGINX_CONFIG_DIR=%~dp0nginx-config
 set GARAGE_SIM_IMAGE=cfontes0estapar/garage-sim:1.0.0
+set DEFAULT_IP=192.168.1.16
 
-:: Detecção de IP com prioridade para Ethernet/Wi-Fi
-for /f "tokens=1-2 delims=:" %%a in ('ipconfig ^| findstr "IPv4"') do (
-    set interface=%%a
-    set ip=%%b
-    :: Remove espaços
-    set interface=!interface: =!
-    set ip=!ip: =!
+:: Deteccao de IP alternativo (se o padrao nao estiver disponivel)
+for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr "IPv4" ^| findstr /i "Ethernet Wi-Fi"') do (
+    set ALT_IP=%%a
+    set ALT_IP=!ALT_IP: =!
+)
 
-    :: Filtra apenas interfaces físicas
-    echo !interface! | findstr /i "Ethernet Wi-Fi" >nul
-    if !errorlevel! equ 0 (
-        set HOST_IP=!ip!
-        goto ip_detected
+:: Verifica se o IP padrao esta nas interfaces
+ipconfig | findstr "%DEFAULT_IP%" >nul
+if %errorlevel% neq 0 (
+    if defined ALT_IP (
+        set DEFAULT_IP=!ALT_IP!
+    ) else (
+        echo Nenhuma interface com o IP %DEFAULT_IP% encontrada.
+        echo IPs disponiveis:
+        ipconfig | findstr "IPv4"
+        echo.
     )
 )
 
-:ip_detected
+:: Confirmacao do IP
 echo.
-echo IPs detectados:
-ipconfig | findstr /i "IPv4" | findstr /i "Ethernet Wi-Fi"
-echo.
-
-:: Confirmação do IP
-set /p HOST_IP="Digite o IP que deseja usar (padrão %HOST_IP%): "
-if "!HOST_IP!"=="" (
-    echo Usando IP detectado automaticamente: %HOST_IP%
-) else (
-    echo Usando IP manual: !HOST_IP!
-)
+echo IP detectado: %DEFAULT_IP%
+set /p HOST_IP="Pressione ENTER para usar %DEFAULT_IP% ou digite outro IP: "
+if "!HOST_IP!"=="" set HOST_IP=%DEFAULT_IP%
 
 :: Remove containers existentes
 echo.
@@ -62,14 +58,14 @@ docker run -d ^
     --add-host=localhost:%HOST_IP% ^
     %GARAGE_SIM_IMAGE%
 
-:: Verificação
+:: Verificacao
 timeout /t 2 >nul
 echo.
-echo Containers em execução:
+echo Containers em execucao:
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 echo.
-echo URLs disponíveis:
+echo URLs disponiveis:
 echo - Garage Simulator: http://localhost:3000
 echo - Proxy NGINX:      http://localhost:3003
 echo - IP configurado:   %HOST_IP%

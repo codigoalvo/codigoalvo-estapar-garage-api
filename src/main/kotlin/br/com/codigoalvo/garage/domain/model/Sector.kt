@@ -1,5 +1,6 @@
 package br.com.codigoalvo.garage.domain.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalTime
@@ -29,6 +30,14 @@ data class Sector(
     @Column(name = "duration_limit_minutes", nullable = false)
     val durationLimitMinutes: Int,
 
-    @OneToMany(mappedBy = "sector", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonIgnore
+    @OneToMany(mappedBy = "sector", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     val spots: MutableList<Spot> = mutableListOf()
-)
+
+
+) {
+    override fun toString(): String {
+        return "Sector(id=$id, code='$code', basePrice=$basePrice, capacity=$capacity, openHour=$openHour, " +
+                "closeHour=$closeHour, durationLimitMinutes=$durationLimitMinutes)"
+    }
+}

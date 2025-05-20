@@ -1,5 +1,6 @@
 package br.com.codigoalvo.garage.controller
 
+import br.com.codigoalvo.garage.service.WebhookEventService
 import jakarta.annotation.PostConstruct
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -9,18 +10,21 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/webhook")
 class WebhookController(
-    private val logger: Logger = LoggerFactory.getLogger(WebhookController::class.java)
+    private val eventService: WebhookEventService,
 ) {
 
-    @PostMapping
-    fun receiveEvent(@RequestBody body: String): ResponseEntity<Void> {
-        logger.info("[*] Webhook recebido: $body")
-        return ResponseEntity.ok().build()
-    }
+    private val logger: Logger = LoggerFactory.getLogger(WebhookController::class.java)
 
-    @PostConstruct
-    fun init() {
-        logger.info("[!] WebhookController carregado com sucesso!")
+    @PostMapping
+    fun receiveEvent(@RequestBody rawPayload: String): ResponseEntity<Void> {
+        logger.info("[*] Webhook recebido: $rawPayload")
+        return try {
+            eventService.processRawEvent(rawPayload)
+            ResponseEntity.ok().build()
+        } catch (ex: Exception) {
+            logger.error("Erro ao processar webhook: ${ex.message}", ex)
+            ResponseEntity.badRequest().build()
+        }
     }
 
 }

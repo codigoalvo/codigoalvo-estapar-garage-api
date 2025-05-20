@@ -1,4 +1,4 @@
-package br.com.codigoalvo.garage.domain.model
+package br.com.codigoalvo.garage.domain.enums
 
 enum class EventType {
     ENTRY,

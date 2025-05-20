@@ -70,4 +70,3 @@ echo - Garage Simulator: http://localhost:3000
 echo - Proxy NGINX:      http://localhost:3003
 echo - IP configurado:   %HOST_IP%
 echo.
-pause

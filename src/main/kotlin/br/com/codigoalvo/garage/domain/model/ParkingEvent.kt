@@ -20,8 +20,8 @@ data class ParkingEvent(
     @Column(name = "event_type", nullable = false, length = 10)
     val eventType: EventType,
 
-    @Column(name = "event_time", nullable = false)
-    val eventTime: LocalDateTime,
+    @Column(name = "event_time")
+    val eventTime: LocalDateTime? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "spot_id")

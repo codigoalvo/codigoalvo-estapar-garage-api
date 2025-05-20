@@ -14,15 +14,21 @@ data class RevenueLog(
     @GeneratedValue
     val id: UUID? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "sector_id", nullable = false)
-    val sector: Sector,
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_id", nullable = false, unique = true)
+    val event: ParkingEvent,
 
     @Column(name = "reference_date", nullable = false)
     val referenceDate: LocalDate,
 
-    @Column(nullable = false)
-    val amount: BigDecimal,
+    @Column(name = "duration_minutes", nullable = false)
+    val durationMinutes: Long,
+
+    @Column(name = "amount_charged", nullable = false)
+    val amountCharged: BigDecimal,
+
+    @Column(name = "occupancy_rate", nullable = false)
+    val occupancyRate: Double,
 
     @Column(nullable = false, length = 3)
     val currency: String = "BRL",

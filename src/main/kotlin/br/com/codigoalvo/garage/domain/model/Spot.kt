@@ -23,5 +23,5 @@ data class Spot(
     val longitude: Double,
 
     @Column(name = "is_occupied", nullable = false)
-    val isOccupied: Boolean = false
+    var isOccupied: Boolean = false
 )

@@ -27,5 +27,8 @@ data class ParkingEvent(
     @JoinColumn(name = "spot_id")
     val spot: Spot? = null,
 
-    )
+    @Column(name = "occupancy_rate")
+    var occupancyRate: Double? = null
+
+)
 

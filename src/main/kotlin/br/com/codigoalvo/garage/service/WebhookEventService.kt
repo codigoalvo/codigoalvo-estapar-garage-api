@@ -1,6 +1,5 @@
 package br.com.codigoalvo.garage.service
 
-import br.com.codigoalvo.garage.config.PricingProperties
 import br.com.codigoalvo.garage.domain.enums.EventType
 import br.com.codigoalvo.garage.domain.model.ParkingEvent
 import br.com.codigoalvo.garage.domain.model.RevenueLog
@@ -13,9 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.Duration
-import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -26,7 +23,7 @@ class WebhookEventService(
     private val spotRepository: SpotRepository,
     private val parkingEventRepository: ParkingEventRepository,
     private val revenueLogRepository: RevenueLogRepository,
-    private val pricingProperties: PricingProperties,
+    private val pricingRuleService: PricingRuleService,
 ) {
 
     private val logger = LoggerFactory.getLogger(WebhookEventService::class.java)
@@ -70,12 +67,10 @@ class WebhookEventService(
         parkingEventRepository.save(event)
 
         if (eventType == EventType.PARKED && spot != null) {
-            spot.isOccupied = true
-            spotRepository.save(spot)
+            processParkedEvent(event, spot)
         } else if (eventType == EventType.EXIT) {
             processExitEvent(event)
         }
-
         logger.info("Evento salvo com sucesso: $event")
     }
 
@@ -101,6 +96,29 @@ class WebhookEventService(
     }
 
     @Transactional
+    fun processParkedEvent(event: ParkingEvent, spot: Spot) {
+        spot.isOccupied = true
+        spotRepository.save(spot)
+        logger.info("OCUPADO Spot [${spot.externalId}] com ID ${spot.id}")
+
+        val sector = spot.sector
+        val capacity = sector.capacity
+        val occupiedSpots = sector.spots.count { it.isOccupied }
+        val occupancyRate = occupiedSpots.toDouble() / capacity
+        val totalSpots = sector.spots.size
+
+        logger.info("Ocupação do setor [${sector.code}]")
+        logger.info("-> Capacidade de vagas: $capacity")
+        logger.info("-> Total de vagas: $totalSpots")
+        logger.info("-> Vagas ocupadas: $occupiedSpots")
+        logger.info("Taxa de ocupação no momento do PARKED: $occupancyRate")
+
+        event.occupancyRate = occupancyRate
+
+        parkingEventRepository.save(event)
+    }
+
+    @Transactional
     fun processExitEvent(exitEvent: ParkingEvent) {
         val entryEvent = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(
             exitEvent.licensePlate, EventType.ENTRY
@@ -114,75 +132,52 @@ class WebhookEventService(
             ?: throw IllegalStateException("Evento PARKED para ${exitEvent.licensePlate} sem spot associado")
 
         val sector = spot.sector
-        val totalSpots = sector.spots.size
-        val capacity = sector.capacity
-        val occupiedSpots = sector.spots.count { it.isOccupied }
-        val occupancyRate = occupiedSpots.toDouble() / capacity
-        logger.info("Ocupação do setor [${sector.code}]")
-        logger.info("-> Capacidade de vagas: $capacity")
-        logger.info("-> Total de vagas: $totalSpots")
-        logger.info("-> Vagas ocupadas: $occupiedSpots")
-        logger.info("-> Taxa de ocupação: $occupancyRate")
+        val occupancyRate: Double = parkedEvent.occupancyRate ?: 0.0
+        val basePrice = sector.basePrice
 
-        val durationMinutes = maxOf(Duration.between(entryEvent.eventTime, exitEvent.eventTime).toMinutes(), 1)
+        val durationMinutes = Duration
+            .between(entryEvent.eventTime, exitEvent.eventTime)
+            .toMinutes()
+            .coerceAtLeast(1)
+
         logger.info("Calculando o tempo para a Placa: [${exitEvent.licensePlate}]")
         logger.info("-> Horário de entrada: ${entryEvent.eventTime}")
         logger.info("-> Horário de saída: ${exitEvent.eventTime}")
         logger.info("-> Duração em minutos: $durationMinutes")
-
         logger.info("< ENTRY event: $entryEvent")
         logger.info("* PARKED event: $parkedEvent")
         logger.info("> EXIT event: $exitEvent")
 
-        val amount = calculateCharge(sector.basePrice, durationMinutes, occupancyRate)
-
-        val revenueLog = RevenueLog(
-            event = parkedEvent,
-            referenceDate = parkedEvent.eventTime?.toLocalDate() ?: LocalDate.now(ZoneOffset.UTC),
-            durationMinutes = durationMinutes,
-            amountCharged = amount,
-            occupancyRate = occupancyRate
+        val occupancyMultiplier = pricingRuleService.calculateOccupancyMultiplier(occupancyRate)
+        val durationMultiplier = pricingRuleService.calculateDurationMultiplier(durationMinutes)
+        val amount = pricingRuleService.calculateCharge(
+            basePrice = basePrice,
+            durationMultiplier = durationMultiplier,
+            occupancyMultiplier = occupancyMultiplier
         )
 
-        revenueLogRepository.save(revenueLog)
+        val revenueLog = RevenueLog(
+            entryEvent = entryEvent,
+            parkedEvent = parkedEvent,
+            exitEvent = exitEvent,
+            referenceDate = parkedEvent.eventTime?.toLocalDate() ?: LocalDate.now(ZoneOffset.UTC),
+            durationMinutes = durationMinutes,
+            periodMultiplier = durationMultiplier,
+            occupancyMultiplier = occupancyMultiplier,
+            basePrice = basePrice,
+            occupancyRate = occupancyRate,
+            amountCharged = amount
+        )
 
-        val occupiedSpot = parkedEvent.spot
-        occupiedSpot.let {
-            it.isOccupied = false
-            spotRepository.save(it)
-        }
+        logger.info("Salvando RevenueLog: $revenueLog")
+        val savedRevenueLog = revenueLogRepository.save(revenueLog)
+        logger.info("Salvou com sucesso: $savedRevenueLog")
+
+        val managedSpot = spotRepository.findById(spot.id!!)
+            .orElseThrow { IllegalStateException("Spot com ID ${spot.id} não encontrado") }
+        managedSpot.isOccupied = false
+        spotRepository.save(managedSpot)
+        logger.info("DESOCUPADO Spot [${spot.externalId}] com ID ${spot.id}")
     }
-
-    private fun calculateCharge(
-        basePrice: BigDecimal,
-        durationMinutes: Long,
-        occupancyRate: Double,
-    ): BigDecimal {
-
-        val multiplier = pricingProperties.rules
-            .sortedBy { it.threshold }
-            .firstOrNull { occupancyRate <= it.threshold }
-            ?.multiplier ?: 1.0
-
-        logger.info("Calculando cobrança:")
-        logger.info("-> Duração: $durationMinutes minutos")
-        logger.info("-> Taxa de Ocupação: $occupancyRate")
-        logger.info("-> Base price: $basePrice")
-        logger.info("-> Multiplicador aplicado: $multiplier")
-
-        val hoursToCharge = if (durationMinutes <= 60) {
-            BigDecimal.ONE
-        } else {
-            val extraMinutes = durationMinutes - 60
-            val extraQuarters = Math.ceil(extraMinutes / 15.0).toInt()
-            BigDecimal.ONE + (BigDecimal(extraQuarters) * BigDecimal("0.25"))
-        }
-
-        val finalAmount = basePrice.multiply(BigDecimal(multiplier)).multiply(hoursToCharge)
-        logger.info("-> Valor final calculado: $finalAmount")
-
-        return finalAmount
-    }
-
 
 }

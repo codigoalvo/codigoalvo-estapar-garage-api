@@ -1,38 +1,58 @@
 package br.com.codigoalvo.garage.domain.model
 
 import jakarta.persistence.*
+import jakarta.persistence.FetchType
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.*
 
 @Entity
 @Table(name = "revenue_log")
-data class RevenueLog(
+class RevenueLog(
 
     @Id
     @GeneratedValue
-    val id: UUID? = null,
+    var id: UUID? = null,
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id", nullable = false, unique = true)
-    val event: ParkingEvent,
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "entry_event_id")
+    var entryEvent: ParkingEvent,
 
-    @Column(name = "reference_date", nullable = false)
-    val referenceDate: LocalDate,
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "parked_event_id")
+    var parkedEvent: ParkingEvent,
 
-    @Column(name = "duration_minutes", nullable = false)
-    val durationMinutes: Long,
-
-    @Column(name = "amount_charged", nullable = false)
-    val amountCharged: BigDecimal,
-
-    @Column(name = "occupancy_rate", nullable = false)
-    val occupancyRate: Double,
-
-    @Column(nullable = false, length = 3)
-    val currency: String = "BRL",
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "exit_event_id")
+    var exitEvent: ParkingEvent,
 
     @Column(nullable = false)
-    val timestamp: OffsetDateTime = OffsetDateTime.now()
+    var referenceDate: LocalDate,
+
+    @Column(nullable = false)
+    var durationMinutes: Long,
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    var basePrice: BigDecimal,
+
+    @Column(nullable = false)
+    var occupancyRate: Double,
+
+    @Column(nullable = false, precision = 5, scale = 2)
+    var occupancyMultiplier: BigDecimal,
+
+    @Column(nullable = false, precision = 5, scale = 2)
+    var periodMultiplier: BigDecimal,
+
+    @Column(nullable = false, precision = 10, scale = 2)
+    var amountCharged: BigDecimal,
+
+    @Column(nullable = false)
+    var currency: String = "BRL",
+
+    @Column(nullable = false)
+    var timestamp: OffsetDateTime = OffsetDateTime.now(ZoneOffset.UTC)
 )
+

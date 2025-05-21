@@ -18,7 +18,7 @@ class GarageSetupInitializer {
             garageSetupService.initializeGarage()
             logger.info("Setup da garagem concluído com sucesso.")
         } catch (e: Exception) {
-            logger.error("Erro ao executar o setup da garagem: ${e.message}", e)
+            logger.warn("Erro ao executar o setup da garagem: ${e.message}")
         }
     }
 }

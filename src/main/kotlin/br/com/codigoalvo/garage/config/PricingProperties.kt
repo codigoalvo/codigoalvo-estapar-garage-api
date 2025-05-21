@@ -6,10 +6,10 @@ import org.springframework.context.annotation.Configuration
 @ConfigurationProperties(prefix = "pricing")
 @Configuration
 class PricingProperties {
-    var rules: List<Rule> = emptyList()
+    var rules: List<PricingRule> = emptyList()
 
-    class Rule {
-        var threshold: Double = 1.0
+    data class PricingRule(
+        var threshold: Double = 1.0,
         var multiplier: Double = 1.0
-    }
+    )
 }

@@ -1,0 +1,10 @@
+pricing:
+  rules:
+    - threshold: 0.0    # Base (fallback)
+      multiplier: 0.9
+    - threshold: 0.25   # >=25%
+      multiplier: 1.0
+    - threshold: 0.5    # >=50%
+      multiplier: 1.1
+    - threshold: 0.75   # >=75%
+      multiplier: 1.25

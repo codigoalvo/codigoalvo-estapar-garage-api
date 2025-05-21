@@ -169,6 +169,19 @@ Isso garante que o proxy NGINX possa alcançar a aplicação, mesmo quando esta 
 - Essa abordagem **não exige que a aplicação Spring rode em container**, o que facilita o debug e desenvolvimento local.
 - O NGINX atua como intermediário transparente, sendo uma solução robusta e multiplataforma para contornar limitações de rede entre containers Docker e serviços locais.
 
+## Observações sobre a simulação de eventos
+
+Durante a fase de testes, foi identificado que a aplicação de simulação da Estapar pode gerar eventos com intervalo inferior a 1 minuto entre `ENTRY` e `EXIT` para um mesmo veículo.
+
+### Implicações:
+- A lógica de cobrança implementada considera **1 minuto como o tempo mínimo de permanência**, conforme validado na `WebhookEventService`.
+- Dessa forma, mesmo que o simulador envie uma saída quase imediata após a entrada, **a duração será ajustada para no mínimo 1 minuto** para fins de cálculo e persistência.
+
+### Justificativa:
+Essa medida evita o registro de durações nulas ou negativas e garante uma base mínima para cálculo da tarifa, especialmente importante quando regras de cobrança por faixa de ocupação estão em vigor.
+
+
+
 ## Contato
 
 Cassio Reinaldo Amaral

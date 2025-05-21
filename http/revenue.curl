@@ -1,0 +1,7 @@
+curl --request POST \
+  --url http://localhost:8080/revenue \
+  --header 'Content-Type: application/json' \
+  --data '{
+	"date": "2025-05-21",
+	"sector": "A"
+}'

@@ -1,7 +1,7 @@
 package br.com.codigoalvo.garage.config
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies
-import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -9,9 +9,9 @@ import org.springframework.context.annotation.Configuration
 class JacksonConfig {
 
     @Bean
-    fun objectMapper(): ObjectMapper {
-        return ObjectMapper().apply {
-            propertyNamingStrategy = PropertyNamingStrategies.SNAKE_CASE
+    fun jacksonCustomizer(): Jackson2ObjectMapperBuilderCustomizer {
+        return Jackson2ObjectMapperBuilderCustomizer { builder ->
+            builder.propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
         }
     }
 }

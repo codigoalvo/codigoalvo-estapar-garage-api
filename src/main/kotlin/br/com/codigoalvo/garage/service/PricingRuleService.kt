@@ -1,10 +1,15 @@
 package br.com.codigoalvo.garage.service
 
 import br.com.codigoalvo.garage.config.PricingProperties
+import br.com.codigoalvo.garage.domain.model.Sector
+import br.com.codigoalvo.garage.domain.model.Spot
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Duration
+import java.time.LocalDateTime
+import kotlin.math.ceil
 
 @Component
 class PricingRuleService(
@@ -12,6 +17,29 @@ class PricingRuleService(
 ) {
 
     private val logger = LoggerFactory.getLogger(PricingRuleService::class.java)
+
+    fun calculateTimePeriodInMinutes(entryTime: LocalDateTime?, exitTime: LocalDateTime?): Long {
+        return Duration
+            .between(entryTime, exitTime)
+            .toMinutes()
+            .coerceAtLeast(1).also {
+                logger.info("Tempo de duração da estadia calculada em minutos entre [$entryTime] e [$exitTime] : $it")
+            }
+    }
+
+    fun calculateOccupancyRate(sector: Sector): Double {
+        val capacity = sector.capacity
+        val occupiedSpots = sector.spots.count { it.isOccupied }
+        val occupancyRate = occupiedSpots.toDouble() / capacity
+        val totalSpots = sector.spots.size
+
+        logger.info("Ocupação do setor [${sector.code}]")
+        logger.info("-> Capacidade de vagas: $capacity")
+        logger.info("-> Total de vagas: $totalSpots")
+        logger.info("-> Vagas ocupadas: $occupiedSpots")
+        logger.info("Taxa de ocupação no momento do PARKED: $occupancyRate")
+        return occupancyRate
+    }
 
     fun calculateOccupancyMultiplier(occupancyRate: Double): BigDecimal {
         require(occupancyRate >= 0 && occupancyRate < 1.0) {
@@ -22,7 +50,7 @@ class PricingRuleService(
             .firstOrNull { occupancyRate >= it.threshold }
             ?.multiplier
             ?.toBigDecimal()
-            ?: pricingProperties.rules.first().multiplier.toBigDecimal() // Fallback para <25%
+            ?: pricingProperties.rules.first().multiplier.toBigDecimal()
                 .also {
                     logger.info("Multiplicador de ocupação ($occupancyRate taxa) calculado: $it")
                 }
@@ -33,7 +61,7 @@ class PricingRuleService(
             BigDecimal.ONE
         } else {
             val extraMinutes = durationMinutes - 60
-            val extraQuarters = Math.ceil(extraMinutes / 15.0).toInt()
+            val extraQuarters = ceil(extraMinutes / 15.0).toInt()
             BigDecimal.ONE + (BigDecimal(extraQuarters) * BigDecimal("0.25"))
         }.also {
             logger.info("Multiplicador de periodo de tempo ($durationMinutes minutos) calculado: $it")

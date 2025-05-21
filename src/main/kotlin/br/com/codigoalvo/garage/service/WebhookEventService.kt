@@ -101,22 +101,14 @@ class WebhookEventService(
         spotRepository.save(spot)
         logger.info("OCUPADO Spot [${spot.externalId}] com ID ${spot.id}")
 
-        val sector = spot.sector
-        val capacity = sector.capacity
-        val occupiedSpots = sector.spots.count { it.isOccupied }
-        val occupancyRate = occupiedSpots.toDouble() / capacity
-        val totalSpots = sector.spots.size
-
-        logger.info("Ocupação do setor [${sector.code}]")
-        logger.info("-> Capacidade de vagas: $capacity")
-        logger.info("-> Total de vagas: $totalSpots")
-        logger.info("-> Vagas ocupadas: $occupiedSpots")
-        logger.info("Taxa de ocupação no momento do PARKED: $occupancyRate")
+        val occupancyRate = pricingRuleService.calculateOccupancyRate(spot.sector)
 
         event.occupancyRate = occupancyRate
 
         parkingEventRepository.save(event)
     }
+
+
 
     @Transactional
     fun processExitEvent(exitEvent: ParkingEvent) {
@@ -135,10 +127,10 @@ class WebhookEventService(
         val occupancyRate: Double = parkedEvent.occupancyRate ?: 0.0
         val basePrice = sector.basePrice
 
-        val durationMinutes = Duration
-            .between(entryEvent.eventTime, exitEvent.eventTime)
-            .toMinutes()
-            .coerceAtLeast(1)
+        val durationMinutes = pricingRuleService.calculateTimePeriodInMinutes(
+            entryTime = entryEvent.eventTime,
+            exitTime = exitEvent.eventTime,
+        )
 
         logger.info("Calculando o tempo para a Placa: [${exitEvent.licensePlate}]")
         logger.info("-> Horário de entrada: ${entryEvent.eventTime}")

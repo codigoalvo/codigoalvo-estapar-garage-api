@@ -80,12 +80,41 @@ docker-compose up -d
 
 3. A aplicação aplicará os scripts do Liquibase e inicializará com sucesso.
 
-## Próximos Passos
 
-- Implementar lógica de precificação dinâmica com base na lotação do setor
-- Persistir e consultar eventos e dados de faturamento
-- Expor endpoints de consulta para status de placas e vagas
-- Criar testes automatizados
+## Considerações Técnicas
+
+### 1. Sobre o campo `time_parked` e `exit_time` nas respostas
+
+O campo `time_parked`, presente nas respostas dos endpoints `/spot-status` e `/plate-status`, **sempre virá como `null`**, pois o evento `PARKED` enviado pelo simulador **não contém o horário do evento**.  
+Por decisão de integridade, optou-se por **não inferir ou gerar um horário fictício**, como o de recebimento da chamada.
+
+O campo `exit_time` **poderá ser incluído futuramente** nas respostas, uma vez que a informação de saída do veículo está disponível e seria útil exibir quando houver.
+
+---
+
+### 2. Sobre os testes automatizados de precificação
+
+O teste unitário que valida as regras de **precificação por faixa de ocupação** utiliza injeção de dependências do Spring Boot.  
+Portanto, requer o **banco de dados PostgreSQL ativo via Docker**.
+
+Antes de rodar os testes, suba o banco com o seguinte comando:
+
+```bash
+docker-compose up -d
+```
+
+---
+
+### 3. Endpoints disponíveis
+
+| Endpoint         | Método | Descrição                                                           |
+|------------------|--------|---------------------------------------------------------------------|
+| `/plate-status`  | POST   | Retorna a situação atual de uma placa (vaga, status, valores, etc). |
+| `/spot-status`   | POST   | Retorna o status atual de uma vaga (ocupada ou não, eventos).       |
+| `/revenue`       | POST   | Retorna o total faturado por setor em uma determinada data.         |
+
+Todos os campos nas requisições e respostas seguem o padrão `snake_case`.
+
 
 
 ## Integração com o Simulador ESTAPAR via Proxy NGINX

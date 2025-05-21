@@ -70,6 +70,11 @@
             <version>${kotlin.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+        </dependency>
+
         <!-- Testes -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -137,6 +142,7 @@
                         <option>no-arg:annotation=jakarta.persistence.Entity</option>
                         <option>no-arg:annotation=jakarta.persistence.MappedSuperclass</option>
                         <option>no-arg:annotation=jakarta.persistence.Embeddable</option>
+                        <option>no-arg:annotation=br.com.codigoalvo.garage.annotation.NoArg</option>
                     </pluginOptions>
                 </configuration>
                 <dependencies>

@@ -1,0 +1,6 @@
+curl --request POST \
+  --url http://localhost:8080/plate-status \
+  --header 'Content-Type: application/json' \
+  --data '{
+	"license_plate": "VX28750"
+}'

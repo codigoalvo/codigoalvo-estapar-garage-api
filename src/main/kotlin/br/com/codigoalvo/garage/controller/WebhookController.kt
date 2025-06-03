@@ -16,14 +16,20 @@ class WebhookController(
     private val logger: Logger = LoggerFactory.getLogger(WebhookController::class.java)
 
     @PostMapping
-    fun receiveEvent(@RequestBody rawPayload: String): ResponseEntity<Void> {
+    fun receiveEvent(@RequestBody rawPayload: String): ResponseEntity<String> {
         logger.info("[*] Webhook recebido: $rawPayload")
         return try {
             eventService.processRawEvent(rawPayload)
             ResponseEntity.ok().build()
+        } catch (ex: IllegalArgumentException) {
+            logger.warn("IllegalArgumentException ao processar webhook: ${ex.message}", ex)
+            ResponseEntity.badRequest().body<String>(ex.message)
+        } catch (ex: IllegalStateException) {
+            logger.warn("IllegalStateException ao processar webhook: ${ex.message}", ex)
+            ResponseEntity.badRequest().body<String>(ex.message)
         } catch (ex: Exception) {
-            logger.error("Erro ao processar webhook: ${ex.message}", ex)
-            ResponseEntity.badRequest().build()
+            logger.error("Exception ao processar webhook: ${ex.message}", ex)
+            ResponseEntity.internalServerError().body<String>(ex.message)
         }
     }
 

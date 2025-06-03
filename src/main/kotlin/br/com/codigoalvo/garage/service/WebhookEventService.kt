@@ -95,8 +95,7 @@ class WebhookEventService(
             ?: throw IllegalStateException("Vaga com lat=$lat e lng=$lng não encontrada.")
     }
 
-    @Transactional
-    fun processParkedEvent(event: ParkingEvent, spot: Spot) {
+    private fun processParkedEvent(event: ParkingEvent, spot: Spot) {
         spot.isOccupied = true
         spotRepository.save(spot)
         logger.info("OCUPADO Spot [${spot.externalId}] com ID ${spot.id}")
@@ -108,10 +107,7 @@ class WebhookEventService(
         parkingEventRepository.save(event)
     }
 
-
-
-    @Transactional
-    fun processExitEvent(exitEvent: ParkingEvent) {
+    private fun processExitEvent(exitEvent: ParkingEvent) {
         val entryEvent = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(
             exitEvent.licensePlate, EventType.ENTRY
         ) ?: throw IllegalStateException("Entrada não encontrada para a placa ${exitEvent.licensePlate}")

@@ -1,16 +1,13 @@
 package br.com.codigoalvo.garage.service
 
-import br.com.codigoalvo.garage.dto.SectorConfigDto
-import br.com.codigoalvo.garage.dto.SpotConfigDto
 import br.com.codigoalvo.garage.domain.repository.SectorRepository
 import br.com.codigoalvo.garage.domain.repository.SpotRepository
 import br.com.codigoalvo.garage.domain.model.Sector
 import br.com.codigoalvo.garage.domain.model.Spot
-import br.com.codigoalvo.garage.dto.GarageConfigResponse
+import br.com.codigoalvo.garage.dto.GarageConfigDTO
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.http.HttpMethod
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.client.getForObject
@@ -23,24 +20,26 @@ class GarageSetupService(
     private val sectorRepository: SectorRepository,
     private val spotRepository: SpotRepository,
     private val restTemplate: RestTemplate,
+    private var objectMapper: ObjectMapper,
     @Value("\${garage.simulator.url}") private val simulatorUrl: String
 ) {
 
     private val logger = LoggerFactory.getLogger(GarageSetupService::class.java)
     private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
-    fun initializeGarage() {
-        logger.info("Iniciando setup da garagem com a chamada em: $simulatorUrl/garage")
+    fun initializeGarage(garageConfig: GarageConfigDTO? = null) {
 
-        val response = restTemplate.getForObject<GarageConfigResponse>("$simulatorUrl/garage")
-            ?: throw IllegalStateException("Não foi possível obter a configuração da garagem.")
+        val garageConfigDTO: GarageConfigDTO = garageConfig
+            ?: requestAdminSetup("$simulatorUrl/garage")
+
+        logger.info("Garage config (JSON): ${objectMapper.writeValueAsString(garageConfigDTO)}")
 
         // Limpa dados anteriores
         spotRepository.deleteAllInBatch()
         sectorRepository.deleteAllInBatch()
 
         // Persiste setores
-        val sectors = response.garage.map {
+        val sectors = garageConfigDTO.garage.map {
             Sector(
                 id = UUID.randomUUID(),
                 code = it.sector,
@@ -54,7 +53,7 @@ class GarageSetupService(
         sectorRepository.saveAll(sectors)
 
         // Persiste vagas
-        val spotEntities = response.spots.map {
+        val spotEntities = garageConfigDTO.spots.map {
             Spot(
                 id = UUID.randomUUID(),
                 externalId = it.id,
@@ -70,6 +69,11 @@ class GarageSetupService(
         spotRepository.saveAll(spotEntities)
 
         logger.info("Setup da garagem concluído com sucesso: ${sectors.size} setores e ${spotEntities.size} vagas.")
+    }
+
+    private fun requestAdminSetup(url: String = "$simulatorUrl/garage"): GarageConfigDTO {
+        logger.info("Iniciando setup da garagem com a chamada em: $url")
+        return restTemplate.getForObject<GarageConfigDTO>("$url")
     }
 
 }

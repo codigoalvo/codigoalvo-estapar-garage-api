@@ -1,0 +1,10 @@
+curl --request POST \
+  --url http://localhost:8080/webhook \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: insomnia/11.1.0' \
+  --data '{
+	"lat": -23.561324,
+	"lng": -46.655621,
+	"license_plate": "PM18524",
+	"event_type": "PARKED"
+}'

@@ -210,6 +210,41 @@ Durante a fase de testes, foi identificado que a aplicação de simulação da E
 Essa medida evita o registro de durações nulas ou negativas e garante uma base mínima para cálculo da tarifa, especialmente importante quando regras de cobrança por faixa de ocupação estão em vigor.
 
 
+## Testes manuais com arquivos .curl (sem simulador)
+
+Para facilitar o desenvolvimento e os testes sem depender da aplicação simuladora da Estapar, foram criados arquivos `.curl` reutilizáveis localizados na pasta `http/` na raiz do projeto.
+
+### Arquivos disponíveis
+
+1. `1-admin-setup.curl` – Executa a configuração da garagem via `POST /admin/setup`.
+2. `2-webhook-entry.curl` – Simula evento ENTRY.
+3. `3-webhook-parked.curl` – Simula evento PARKED.
+4. `4-webhook-exit.curl` – Simula evento EXIT.
+5. `5-plate-status.curl` – Consulta status de uma placa.
+6. `6-spot-status.curl` – Consulta status de uma vaga.
+7. `7-revenue.curl` – Consulta o faturamento diário por setor.
+
+### Como utilizar
+
+Execute os arquivos `.curl` com o comando abaixo no terminal:
+
+```bash
+curl -K http/1-admin-setup.curl
+```
+
+> Repita com os demais arquivos conforme o fluxo desejado (ex: ENTRY → PARKED → EXIT → consultas).
+
+### Endpoint auxiliar: `/admin/setup`
+
+Foi criado um endpoint auxiliar `POST /admin/setup` que recebe o mesmo JSON utilizado no setup inicial da aplicação, permitindo reconfiguração da garagem manualmente para facilitar testes independentes da aplicação simuladora.
+
+### Próximos passos
+
+Está previsto futuramente a criação de testes integrados que utilizem containers Docker para:
+- Subir a aplicação;
+- Executar as chamadas dos arquivos `.curl`;
+- Validar os resultados automaticamente.
+
 
 ## Contato
 

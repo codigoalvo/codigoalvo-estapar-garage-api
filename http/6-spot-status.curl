@@ -2,6 +2,6 @@ curl --request POST \
   --url http://localhost:8080/spot-status \
   --header 'Content-Type: application/json' \
   --data '{
-	"lat": -23.561104,
-	"lng": -46.655401
+	"lat": -23.561324,
+	"lng": -46.655621
 }'

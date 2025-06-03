@@ -1,6 +1,6 @@
 package br.com.codigoalvo.garage.dto
 
-data class GarageConfigResponse(
+data class GarageConfigDTO(
     val garage: List<SectorConfigDto> = emptyList(),
     val spots: List<SpotConfigDto> = emptyList()
 )

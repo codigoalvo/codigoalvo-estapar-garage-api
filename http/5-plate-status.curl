@@ -1,7 +1,6 @@
 curl --request POST \
-  --url http://localhost:8080/revenue \
+  --url http://localhost:8080/plate-status \
   --header 'Content-Type: application/json' \
   --data '{
-	"date": "2025-05-21",
-	"sector": "A"
+	"license_plate": "PM18524"
 }'

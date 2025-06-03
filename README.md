@@ -238,12 +238,69 @@ curl -K http/1-admin-setup.curl
 
 Foi criado um endpoint auxiliar `POST /admin/setup` que recebe o mesmo JSON utilizado no setup inicial da aplicação, permitindo reconfiguração da garagem manualmente para facilitar testes independentes da aplicação simuladora.
 
-### Próximos passos
+
+## Próximos passos e roadmap técnico
+
+Este projeto continuará em evolução para incorporar melhores práticas de validação, confiabilidade e usabilidade. Abaixo estão os próximos passos planejados:
 
 Está previsto futuramente a criação de testes integrados que utilizem containers Docker para:
 - Subir a aplicação;
 - Executar as chamadas dos arquivos `.curl`;
 - Validar os resultados automaticamente.
+
+---
+
+### Melhorias nas validações de entrada
+
+- Substituir o tipo de entrada atual do webhook (`String`) por um **DTO fortemente tipado**.
+- Adicionar **validações com mensagens de erro claras** no corpo da resposta (`400 Bad Request`) em caso de entrada inválida:
+    - Campos ausentes;
+    - Tipos incorretos;
+    - Enum inválido (`event_type` etc.).
+
+---
+
+### Idempotência e consistência
+
+- Implementar **controle de idempotência** no endpoint do webhook para evitar o reprocessamento de eventos duplicados:
+    - Rejeitar eventos com `event_id` já processado;
+    - Retornar `409 Conflict` ou `200 OK` com status de duplicado.
+
+---
+
+### Integração com Apache Kafka
+
+- Permitir que os eventos do webhook também possam ser recebidos via **mensageria com Kafka**, em paralelo ao endpoint HTTP.
+- Criar um consumidor Kafka responsável por:
+    - Processar eventos de forma assíncrona;
+    - Garantir consistência com os mesmos serviços internos;
+    - Aplicar lock/transação para evitar concorrência entre chamadas REST e mensagens Kafka para o mesmo recurso (placa/vaga).
+
+---
+
+### Interface gráfica (frontend Angular)
+
+- Desenvolver uma aplicação frontend com **Angular**, com as seguintes funcionalidades:
+    - Tela para configuração visual da garagem;
+    - Visualização de status das vagas (ocupadas/livres);
+    - Lista de veículos estacionados;
+    - Simulação de eventos webhook com botões (`ENTRY`, `PARKED`, `EXIT`);
+- A integração será feita via chamadas REST ao backend atual.
+
+---
+
+### Testes e automação
+
+- Criar testes integrados e automatizados:
+    - Utilização de arquivos `.curl` e assertivas sobre o estado da aplicação;
+    - Preparação de um ambiente Docker para subir a aplicação + banco + testes;
+    - Futuramente integração com CI/CD (ex: GitHub Actions).
+
+---
+
+> Este roadmap será atualizado conforme as necessidades do projeto e disponibilidade para evolução.
+
+
 
 
 ## Contato

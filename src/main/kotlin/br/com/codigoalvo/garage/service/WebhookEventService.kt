@@ -7,6 +7,8 @@ import br.com.codigoalvo.garage.domain.model.Spot
 import br.com.codigoalvo.garage.domain.repository.ParkingEventRepository
 import br.com.codigoalvo.garage.domain.repository.RevenueLogRepository
 import br.com.codigoalvo.garage.domain.repository.SpotRepository
+import br.com.codigoalvo.garage.exception.InvalidRequestException
+import br.com.codigoalvo.garage.exception.InvalidStateException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
@@ -33,16 +35,16 @@ class WebhookEventService(
         val rootNode = objectMapper.readTree(payload)
 
         val eventTypeStr = rootNode["event_type"]?.asText()
-            ?: throw IllegalArgumentException("Campo 'event_type' ausente no payload.")
+            ?: throw InvalidRequestException("Campo 'event_type' ausente no payload.")
 
         val eventType = try {
             EventType.valueOf(eventTypeStr)
-        } catch (ex: IllegalArgumentException) {
-            throw IllegalArgumentException("Tipo de evento desconhecido: '$eventTypeStr'")
+        } catch (ex: InvalidRequestException) {
+            throw InvalidRequestException("Tipo de evento desconhecido: '$eventTypeStr'")
         }
 
         val licensePlate = rootNode["license_plate"]?.asText()
-            ?: throw IllegalArgumentException("Campo 'license_plate' ausente no payload.")
+            ?: throw InvalidRequestException("Campo 'license_plate' ausente no payload.")
 
         val eventTime = extractEventTime(rootNode, eventType)
 
@@ -50,7 +52,7 @@ class WebhookEventService(
             val lat = rootNode["lat"]?.asDouble()
             val lng = rootNode["lng"]?.asDouble()
             if (lat == null || lng == null) {
-                throw IllegalArgumentException("Coordenadas 'lat' e 'lng' são obrigatórias para eventos PARKED.")
+                throw InvalidRequestException("Coordenadas 'lat' e 'lng' são obrigatórias para eventos PARKED.")
             }
             findSpotByCoordinates(lat, lng)
         } else {
@@ -78,12 +80,12 @@ class WebhookEventService(
         return when (eventType) {
             EventType.ENTRY -> {
                 val value = event["entry_time"]?.asText()
-                    ?: throw IllegalArgumentException("Evento ENTRY não contém entry_time")
+                    ?: throw InvalidRequestException("Evento ENTRY não contém entry_time")
                 LocalDateTime.parse(value)
             }
             EventType.EXIT -> {
                 val value = event["exit_time"]?.asText()
-                    ?: throw IllegalArgumentException("Evento EXIT não contém exit_time")
+                    ?: throw InvalidRequestException("Evento EXIT não contém exit_time")
                 LocalDateTime.parse(value)
             }
             EventType.PARKED -> null
@@ -92,7 +94,7 @@ class WebhookEventService(
 
     private fun findSpotByCoordinates(lat: Double, lng: Double): Spot {
         return spotRepository.findByLatitudeAndLongitude(lat, lng)
-            ?: throw IllegalStateException("Vaga com lat=$lat e lng=$lng não encontrada.")
+            ?: throw InvalidStateException("Vaga com lat=$lat e lng=$lng não encontrada.")
     }
 
     private fun processParkedEvent(event: ParkingEvent, spot: Spot) {
@@ -110,14 +112,14 @@ class WebhookEventService(
     private fun processExitEvent(exitEvent: ParkingEvent) {
         val entryEvent = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(
             exitEvent.licensePlate, EventType.ENTRY
-        ) ?: throw IllegalStateException("Entrada não encontrada para a placa ${exitEvent.licensePlate}")
+        ) ?: throw InvalidStateException("Entrada não encontrada para a placa ${exitEvent.licensePlate}")
 
         val parkedEvent = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(
             exitEvent.licensePlate, EventType.PARKED
-        ) ?: throw IllegalStateException("Evento PARKED não encontrado para a placa ${exitEvent.licensePlate}")
+        ) ?: throw InvalidStateException("Evento PARKED não encontrado para a placa ${exitEvent.licensePlate}")
 
         val spot = parkedEvent.spot
-            ?: throw IllegalStateException("Evento PARKED para ${exitEvent.licensePlate} sem spot associado")
+            ?: throw InvalidStateException("Evento PARKED para ${exitEvent.licensePlate} sem spot associado")
 
         val sector = spot.sector
         val occupancyRate: Double = parkedEvent.occupancyRate ?: 0.0
@@ -162,7 +164,7 @@ class WebhookEventService(
         logger.info("Salvou com sucesso: $savedRevenueLog")
 
         val managedSpot = spotRepository.findById(spot.id!!)
-            .orElseThrow { IllegalStateException("Spot com ID ${spot.id} não encontrado") }
+            .orElseThrow { InvalidStateException("Spot com ID ${spot.id} não encontrado") }
         managedSpot.isOccupied = false
         spotRepository.save(managedSpot)
         logger.info("DESOCUPADO Spot [${spot.externalId}] com ID ${spot.id}")

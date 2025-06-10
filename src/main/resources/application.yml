@@ -28,12 +28,18 @@ server:
 
 logging:
   level:
+    br.com.codigoalvo: INFO
     org.springframework: INFO
     org.hibernate.SQL: WARN
     org.hibernate.type.descriptor.sql: WARN
     org.hibernate.orm.jdbc.bind: WARN
     org.hibernate.engine.jdbc.spi.SqlExceptionHelper: WARN
     org.springframework.orm.jpa: WARN
+
+api:
+  version: 1.0.0
+  debug:
+    enabled: false
 
 garage:
   simulator:

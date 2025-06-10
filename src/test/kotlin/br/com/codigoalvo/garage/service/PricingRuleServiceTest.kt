@@ -1,5 +1,6 @@
 package br.com.codigoalvo.garage.service
 
+import br.com.codigoalvo.garage.exception.InvalidRequestException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows

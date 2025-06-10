@@ -5,7 +5,7 @@
 
     <groupId>br.com.codigoalvo</groupId>
     <artifactId>codigoalvo-estapar-garage-sim</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
     <name>codigoalvo-estapar-garage-sim</name>
     <description>Estapar Garage Management System</description>

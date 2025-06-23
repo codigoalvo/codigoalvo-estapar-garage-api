@@ -15,7 +15,6 @@ import java.util.stream.Collectors
 @RestControllerAdvice
 class GlobalExceptionHandler(
     private val request: HttpServletRequest,
-    @Value("\${api.version}") private val apiVersion: String,
     @Value("\${api.debug.enabled}") private val debugEnabled: Boolean
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -27,7 +26,6 @@ class GlobalExceptionHandler(
             .message(ex.message)
             .localizationKey(ex.localizationKey)
             .path(request.requestURI)
-            .version(apiVersion)
             .errorDetails(
                 ApiResponse.ErrorDetails(
                     cause = ex.cause?.message,
@@ -52,7 +50,6 @@ class GlobalExceptionHandler(
             .message("Validation failed")
             .localizationKey("validation.error")
             .path(request.requestURI)
-            .version(apiVersion)
             .errorDetails(
                 ApiResponse.ErrorDetails(
                     cause = "Invalid request parameters",
@@ -73,7 +70,6 @@ class GlobalExceptionHandler(
             .message("Internal server error")
             .localizationKey("error.internal")
             .path(request.requestURI)
-            .version(apiVersion)
             .errorDetails(
                 ApiResponse.ErrorDetails(
                     cause = ex.message,

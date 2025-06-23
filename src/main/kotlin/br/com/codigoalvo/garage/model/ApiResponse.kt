@@ -20,9 +20,6 @@ data class ApiResponse<T> private constructor(
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val path: String?,
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    val version: String?,
-
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val metadata: Map<String, Any>,
 
@@ -79,7 +76,6 @@ data class ApiResponse<T> private constructor(
             message = message,
             localizationKey = localizationKey,
             path = path,
-            version = version,
             metadata = metadata,
             data = data,
             errorDetails = errorDetails

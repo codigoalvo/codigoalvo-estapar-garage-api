@@ -1,7 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
 
     <groupId>br.com.codigoalvo</groupId>
     <artifactId>codigoalvo-estapar-garage-sim</artifactId>
@@ -105,48 +112,33 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
         <plugins>
-            <!-- Kotlin Compiler Plugin -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
-                <version>${kotlin.version}</version>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <goals>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
                 <configuration>
-                    <jvmTarget>21</jvmTarget>
+                    <args>
+                        <arg>-Xjsr305=strict</arg>
+                        <arg>-Xemit-jvm-type-annotations</arg>
+                    </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>
+                        <plugin>jpa</plugin>
                         <plugin>no-arg</plugin>
-                        <plugin>all-open</plugin>
                     </compilerPlugins>
-                    <pluginOptions>
-                        <!-- Configurações all-open -->
-                        <option>all-open:annotation=org.springframework.stereotype.Component</option>
-                        <option>all-open:annotation=org.springframework.transaction.annotation.Transactional</option>
-                        <option>all-open:annotation=org.springframework.context.annotation.Configuration</option>
-                        <option>all-open:annotation=org.springframework.boot.test.context.SpringBootTest</option>
-                        <!-- Configurações no-arg -->
-                        <option>no-arg:annotation=jakarta.persistence.Entity</option>
-                        <option>no-arg:annotation=jakarta.persistence.MappedSuperclass</option>
-                        <option>no-arg:annotation=jakarta.persistence.Embeddable</option>
-                        <option>no-arg:annotation=br.com.codigoalvo.garage.annotation.NoArg</option>
-                    </pluginOptions>
                 </configuration>
                 <dependencies>
-                    <!-- Garantindo que o plugin no-arg está disponível -->
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-allopen</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
                     <dependency>
                         <groupId>org.jetbrains.kotlin</groupId>
                         <artifactId>kotlin-maven-noarg</artifactId>
@@ -154,13 +146,7 @@
                     </dependency>
                 </dependencies>
             </plugin>
-
-            <!-- Spring Boot -->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring.boot.version}</version>
-            </plugin>
         </plugins>
     </build>
+
 </project>

@@ -37,7 +37,6 @@ logging:
     org.springframework.orm.jpa: WARN
 
 api:
-  version: 1.0.0
   debug:
     enabled: false
 

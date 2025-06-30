@@ -25,7 +25,7 @@ class PlateStatusService(
         val parked = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(plate, PARKED)
         val exit = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(plate, EXIT)
 
-        val entryTime = entry?.eventTime
+        val entryTime = entry.eventTime
 
         requireNotNull(entryTime) { "Não foi encontrado evento de entrada para a placa $plate" }
 

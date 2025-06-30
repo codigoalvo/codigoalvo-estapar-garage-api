@@ -9,7 +9,7 @@ import java.util.*
 data class ApiResponse<T> private constructor(
     val id: UUID,
     val timestamp: Instant,
-    val status: HttpStatus,
+    val status: Int,
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val message: String?,
@@ -75,7 +75,7 @@ data class ApiResponse<T> private constructor(
         fun build() = ApiResponse(
             id = id,
             timestamp = timestamp,
-            status = status,
+            status = status.value(),
             message = message,
             localizationKey = localizationKey,
             version = version,

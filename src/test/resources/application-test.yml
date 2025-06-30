@@ -1,3 +1,10 @@
+spring:
+  datasource:
+    hikari:
+      max-lifetime: 30000 # 30 segundos (reduza o tempo de vida das conexões)
+      leak-detection-threshold: 5000 # 5 segundos
+      initialization-fail-timeout: 0 # Não falhar se não conseguir conexão inicial
+
 api:
   version: '@project.version@'
   debug:

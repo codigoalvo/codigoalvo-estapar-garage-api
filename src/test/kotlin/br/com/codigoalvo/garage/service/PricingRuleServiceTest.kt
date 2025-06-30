@@ -1,5 +1,6 @@
 package br.com.codigoalvo.garage.service
 
+import br.com.codigoalvo.garage.AbstractPostgresTest
 import br.com.codigoalvo.garage.exception.InvalidRequestException
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
@@ -9,13 +10,13 @@ import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
 
 @SpringBootTest
-class PricingRuleServiceTest {
+class PricingRuleServiceTest: AbstractPostgresTest() {
 
     @Autowired
     lateinit var pricingRuleService: PricingRuleService
 
     @Test
-    fun `deve retornar multiplicador 0_9 para ocupacao menor que 25%`() {
+    fun `deve retornar multiplicador 0_9 para ocupacao menor que 25`() {
         val testCases = listOf(0.0, 0.1, 0.2499)
 
         testCases.forEach { rate ->
@@ -28,7 +29,7 @@ class PricingRuleServiceTest {
     }
 
     @Test
-    fun `deve retornar multiplicador 1_0 para ocupacao entre 25% e 50%`() {
+    fun `deve retornar multiplicador 1_0 para ocupacao entre 25 e 50`() {
         val testCases = listOf(0.25, 0.3, 0.4999)
 
         testCases.forEach { rate ->
@@ -41,7 +42,7 @@ class PricingRuleServiceTest {
     }
 
     @Test
-    fun `deve retornar multiplicador 1_1 para ocupacao entre 50% e 75%`() {
+    fun `deve retornar multiplicador 1_1 para ocupacao entre 50 e 75`() {
         val testCases = listOf(0.5, 0.6, 0.7499)
 
         testCases.forEach { rate ->
@@ -54,7 +55,7 @@ class PricingRuleServiceTest {
     }
 
     @Test
-    fun `deve retornar multiplicador 1_25 para ocupacao maior ou igual a 75%`() {
+    fun `deve retornar multiplicador 1_25 para ocupacao maior ou igual a 75`() {
         val testCases = listOf(0.75, 0.8, 0.9999)
 
         testCases.forEach { rate ->

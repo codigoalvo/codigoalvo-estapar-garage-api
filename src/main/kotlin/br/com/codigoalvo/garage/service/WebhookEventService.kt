@@ -163,7 +163,7 @@ class WebhookEventService(
         val savedRevenueLog = revenueLogRepository.save(revenueLog)
         logger.info("Salvou com sucesso: $savedRevenueLog")
 
-        val managedSpot = spotRepository.findById(spot.id!!)
+        val managedSpot = spotRepository.findById(spot.id)
             .orElseThrow { InvalidStateException("Spot com ID ${spot.id} não encontrado") }
         managedSpot.isOccupied = false
         spotRepository.save(managedSpot)

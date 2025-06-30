@@ -1,4 +1,5 @@
 api:
+  version: '@project.version@'
   debug:
     enabled: true
 

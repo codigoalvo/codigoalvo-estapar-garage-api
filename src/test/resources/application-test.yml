@@ -1,3 +1,8 @@
+api:
+  version: '@project.version@'
+  debug:
+    enabled: false
+
 pricing:
   rules:
     - threshold: 0.0    # Base (fallback)

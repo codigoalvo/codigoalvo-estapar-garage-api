@@ -15,7 +15,8 @@ import java.util.stream.Collectors
 @RestControllerAdvice
 class GlobalExceptionHandler(
     private val request: HttpServletRequest,
-    @Value("\${api.debug.enabled}") private val debugEnabled: Boolean
+    @Value("\${api.debug.enabled}") private val debugEnabled: Boolean,
+    @Value("\${api.version}") private val apiVersion: String
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -24,6 +25,7 @@ class GlobalExceptionHandler(
         val response = ApiResponse.Builder<Nothing>()
             .status(ex.httpStatus)
             .message(ex.message)
+            .version(apiVersion)
             .localizationKey(ex.localizationKey)
             .path(request.requestURI)
             .errorDetails(
@@ -48,6 +50,7 @@ class GlobalExceptionHandler(
         val response = ApiResponse.Builder<Nothing>()
             .status(HttpStatus.BAD_REQUEST)
             .message("Validation failed")
+            .version(apiVersion)
             .localizationKey("validation.error")
             .path(request.requestURI)
             .errorDetails(
@@ -68,6 +71,7 @@ class GlobalExceptionHandler(
         val response = ApiResponse.Builder<Nothing>()
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .message("Internal server error")
+            .version(apiVersion)
             .localizationKey("error.internal")
             .path(request.requestURI)
             .errorDetails(

@@ -12,9 +12,9 @@
 
     <groupId>br.com.codigoalvo</groupId>
     <artifactId>codigoalvo-estapar-garage-sim</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <packaging>jar</packaging>
-    <name>codigoalvo-estapar-garage-sim</name>
+    <name>codigoalvo-estapar-garage-api</name>
     <description>Estapar Garage Management System</description>
 
     <properties>
@@ -114,6 +114,28 @@
     <build>
         <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
         <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
+
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>application*.yml</include>
+                    <include>application*.properties</include>
+                    <include>**/application*.yaml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>application*.yml</exclude>
+                    <exclude>application*.properties</exclude>
+                    <exclude>**/application*.yaml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

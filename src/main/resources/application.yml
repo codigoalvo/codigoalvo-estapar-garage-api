@@ -37,6 +37,7 @@ logging:
     org.springframework.orm.jpa: WARN
 
 api:
+  version: '@project.version@'
   debug:
     enabled: false
 

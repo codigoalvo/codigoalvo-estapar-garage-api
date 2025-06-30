@@ -3,7 +3,7 @@ package br.com.codigoalvo.garage.dto
 import com.fasterxml.jackson.annotation.JsonAlias
 import java.math.BigDecimal
 
-data class SectorConfigDto(
+data class SectorConfigRequest(
 
     @JsonAlias("sector")
     val sector: String = "",

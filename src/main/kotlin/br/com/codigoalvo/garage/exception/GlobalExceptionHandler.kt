@@ -87,7 +87,7 @@ class GlobalExceptionHandler(
         return ResponseEntity.internalServerError().body(response)
     }
 
-    private fun logError(id: UUID, ex: Throwable) {
+    private fun logError(id: UUID?, ex: Throwable) {
         logger.error(
             "Error ID: $id | Path: ${request.requestURI} | Type: ${ex.javaClass.simpleName}",
             ex

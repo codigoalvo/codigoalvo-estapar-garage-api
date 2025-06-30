@@ -1,5 +1,5 @@
 
-# codigoalvo-estapar-garage-sim
+# codigoalvo-estapar-garage-api
 
 Sistema de gestão de estacionamento inteligente, desenvolvido como parte de um desafio técnico da Estapar. Esta aplicação backend gerencia vagas, setores e eventos de estacionamento com base em dados geoespaciais e eventos de sensores simulados.
 

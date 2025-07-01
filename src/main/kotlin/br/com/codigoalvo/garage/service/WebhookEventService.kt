@@ -31,7 +31,7 @@ class WebhookEventService(
     private val logger = LoggerFactory.getLogger(WebhookEventService::class.java)
 
     @Transactional
-    fun processRawEvent(payload: String) {
+    fun processRawEvent(payload: String): Any {
         val rootNode = objectMapper.readTree(payload)
 
         val eventTypeStr = rootNode["event_type"]?.asText()
@@ -39,7 +39,7 @@ class WebhookEventService(
 
         val eventType = try {
             EventType.valueOf(eventTypeStr)
-        } catch (ex: InvalidRequestException) {
+        } catch (ex: Exception) {
             throw InvalidRequestException("Tipo de evento desconhecido: '$eventTypeStr'")
         }
 
@@ -66,14 +66,17 @@ class WebhookEventService(
             spot = spot
         )
 
-        parkingEventRepository.save(event)
+        val eventSaved = parkingEventRepository.save(event)
+        logger.info("Evento salvo com sucesso: $eventSaved")
 
-        if (eventType == EventType.PARKED && spot != null) {
-            processParkedEvent(event, spot)
+        return if (eventType == EventType.PARKED && spot != null) {
+            processParkedEvent(eventSaved, spot)
         } else if (eventType == EventType.EXIT) {
-            processExitEvent(event)
+            processExitEvent(eventSaved)
+        } else {
+            eventSaved
         }
-        logger.info("Evento salvo com sucesso: $event")
+
     }
 
     private fun extractEventTime(event: JsonNode, eventType: EventType): LocalDateTime? {
@@ -97,7 +100,7 @@ class WebhookEventService(
             ?: throw InvalidStateException("Vaga com lat=$lat e lng=$lng não encontrada.")
     }
 
-    private fun processParkedEvent(event: ParkingEvent, spot: Spot) {
+    private fun processParkedEvent(event: ParkingEvent, spot: Spot): ParkingEvent {
         spot.isOccupied = true
         spotRepository.save(spot)
         logger.info("OCUPADO Spot [${spot.externalId}] com ID ${spot.id}")
@@ -106,10 +109,10 @@ class WebhookEventService(
 
         event.occupancyRate = occupancyRate
 
-        parkingEventRepository.save(event)
+        return parkingEventRepository.save(event)
     }
 
-    private fun processExitEvent(exitEvent: ParkingEvent) {
+    private fun processExitEvent(exitEvent: ParkingEvent): RevenueLog {
         val entryEvent = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(
             exitEvent.licensePlate, EventType.ENTRY
         ) ?: throw InvalidStateException("Entrada não encontrada para a placa ${exitEvent.licensePlate}")
@@ -168,6 +171,7 @@ class WebhookEventService(
         managedSpot.isOccupied = false
         spotRepository.save(managedSpot)
         logger.info("DESOCUPADO Spot [${spot.externalId}] com ID ${spot.id}")
+        return revenueLog
     }
 
 }

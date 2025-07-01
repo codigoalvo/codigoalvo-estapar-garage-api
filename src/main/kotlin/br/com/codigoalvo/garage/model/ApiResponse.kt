@@ -12,12 +12,6 @@ data class ApiResponse<T> private constructor(
     val status: Int,
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    val message: String?,
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    val localizationKey: String?,
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     val path: String?,
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -25,6 +19,12 @@ data class ApiResponse<T> private constructor(
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     val metadata: Map<String, Any>,
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    val localizationKey: String?,
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    val message: String?,
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     val data: T?,
@@ -52,10 +52,10 @@ data class ApiResponse<T> private constructor(
         private var id: UUID = UUID.randomUUID()
         private var timestamp: Instant = Instant.now()
         private lateinit var status: HttpStatus
-        private var message: String? = null
-        private var localizationKey: String? = null
         private var path: String? = null
         private var version: String? = null
+        private var localizationKey: String? = null
+        private var message: String? = null
         private var metadata: Map<String, Any> = emptyMap()
         private var data: T? = null
         private var errorDetails: ErrorDetails? = null

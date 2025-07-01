@@ -27,7 +27,7 @@ class GarageSetupService(
     private val logger = LoggerFactory.getLogger(GarageSetupService::class.java)
     private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
 
-    fun initializeGarage(garageConfig: GarageConfigRequest? = null): String {
+    fun initializeGarage(garageConfig: GarageConfigRequest? = null): Map<String, Any> {
 
         val garageConfigRequest: GarageConfigRequest = garageConfig
             ?: requestAdminSetup("$simulatorUrl/garage")
@@ -48,7 +48,7 @@ class GarageSetupService(
                 durationLimitMinutes = it.durationLimitMinutes
             )
         }
-        sectorRepository.saveAll(sectors)
+        val savedSectors = sectorRepository.saveAll(sectors)
 
         val spotEntities = garageConfigRequest.spots.map {
             Spot(
@@ -63,12 +63,13 @@ class GarageSetupService(
 
         logger.info("Configuração recebida: $spotEntities")
 
-        spotRepository.saveAll(spotEntities)
+        val savedSpots = spotRepository.saveAll(spotEntities)
+        logger.info("Setup da garagem concluído com sucesso: ${savedSectors.size} setores e ${savedSpots.size} vagas.")
 
-        return "Setup da garagem concluído com sucesso: ${sectors.size} setores e ${spotEntities.size} vagas.".also {
-            logger.info(it)
-        }
-
+        return mapOf(
+            "sectors" to savedSectors.size,
+            "spots" to savedSpots.size,
+        )
     }
 
     private fun requestAdminSetup(url: String = "$simulatorUrl/garage"): GarageConfigRequest {

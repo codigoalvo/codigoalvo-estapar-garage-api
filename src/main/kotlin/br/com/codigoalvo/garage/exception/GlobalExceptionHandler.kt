@@ -1,5 +1,6 @@
 package br.com.codigoalvo.garage.exception
 
+import br.com.codigoalvo.garage.domain.enums.MessageKey
 import br.com.codigoalvo.garage.model.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
@@ -10,7 +11,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import java.util.UUID
-import java.util.stream.Collectors
 
 @RestControllerAdvice
 class GlobalExceptionHandler(
@@ -51,7 +51,7 @@ class GlobalExceptionHandler(
             .status(HttpStatus.BAD_REQUEST)
             .message("Validation failed")
             .version(apiVersion)
-            .localizationKey("validation.error")
+            .localizationKey(MessageKey.ERROR_VALIDATION_FIELDS.key)
             .path(request.requestURI)
             .errorDetails(
                 ApiResponse.ErrorDetails(
@@ -72,7 +72,7 @@ class GlobalExceptionHandler(
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .message("Internal server error")
             .version(apiVersion)
-            .localizationKey("error.internal")
+            .localizationKey(MessageKey.ERROR_INTERNAL_SERVER.key)
             .path(request.requestURI)
             .errorDetails(
                 ApiResponse.ErrorDetails(

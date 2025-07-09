@@ -13,13 +13,17 @@ class ApiResponseFactory(
     private val request: HttpServletRequest
 ) {
     fun <T> prepareResponse(
+        status: HttpStatus = HttpStatus.OK,
         message: String? = null,
+        localizationKey: String? = null,
         data: T? = null,
-        status: HttpStatus = HttpStatus.OK
+        errorDetails: ApiResponse.ErrorDetails? = null
+
     ): ApiResponse<T> {
         return ApiResponse.Builder<T>()
             .status(status)
             .message(message)
+            .localizationKey(localizationKey)
             .version(apiVersion)
             .path(request.requestURI)
             .data(data)
@@ -27,11 +31,11 @@ class ApiResponseFactory(
     }
 
     fun <T> prepareResponseEntity(
-        message: String? = null,
-        data: T? = null,
         status: HttpStatus = HttpStatus.OK,
-        metadata: Map<String, Any> = emptyMap(),
-        localizationKey: MessageKey? = null
+        message: String? = null,
+        localizationKey: MessageKey? = null,
+        data: T? = null,
+        metadata: Map<String, Any> = emptyMap()
     ): ResponseEntity<ApiResponse<T>> {
         return ResponseEntity.status(HttpStatus.OK).body(
             ApiResponse.Builder<T>()

@@ -12,7 +12,7 @@
 
     <groupId>br.com.codigoalvo</groupId>
     <artifactId>codigoalvo-estapar-garage-sim</artifactId>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
     <packaging>jar</packaging>
     <name>codigoalvo-estapar-garage-api</name>
     <description>Estapar Garage Management System</description>
@@ -21,6 +21,7 @@
         <java.version>21</java.version>
         <kotlin.version>1.9.23</kotlin.version>
         <spring.boot.version>3.2.5</spring.boot.version>
+        <testcontainers.version>1.19.7</testcontainers.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
@@ -31,6 +32,13 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -97,9 +105,21 @@
         </dependency>
 
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>2.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>5.11.0</version> <!-- versão recente e estável -->
+            <version>5.11.0</version>
             <scope>test</scope>
         </dependency>
 
@@ -113,19 +133,16 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.19.7</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>1.19.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
-            <version>1.19.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -133,7 +150,6 @@
             <artifactId>spring-restdocs-mockmvc</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -169,7 +185,24 @@
                 <configuration>
                     <argLine>--enable-native-access=ALL-UNNAMED</argLine>
                     <forkedProcessTimeoutInSeconds>60</forkedProcessTimeoutInSeconds>
+                    <excludes>
+                        <exclude>**/*IT.kt</exclude>  <!-- Ignora testes de integração -->
+                    </excludes>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.2.5</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -219,5 +252,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

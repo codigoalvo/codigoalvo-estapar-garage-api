@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -100,29 +99,27 @@ class WebhookEventService(
             ?: throw InvalidStateException("Vaga com lat=$lat e lng=$lng não encontrada.")
     }
 
-    private fun processParkedEvent(event: ParkingEvent, spot: Spot): ParkingEvent {
+    private fun processParkedEvent(parkedEvent: ParkingEvent, spot: Spot): ParkingEvent {
+        getEventForTypeOrException(parkedEvent.licensePlate, EventType.ENTRY)
+
         spot.isOccupied = true
         spotRepository.save(spot)
         logger.info("OCUPADO Spot [${spot.externalId}] com ID ${spot.id}")
 
         val occupancyRate = pricingRuleService.calculateOccupancyRate(spot.sector)
 
-        event.occupancyRate = occupancyRate
+        parkedEvent.occupancyRate = occupancyRate
 
-        return parkingEventRepository.save(event)
+        return parkingEventRepository.save(parkedEvent)
     }
 
     private fun processExitEvent(exitEvent: ParkingEvent): RevenueLog {
-        val entryEvent = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(
-            exitEvent.licensePlate, EventType.ENTRY
-        ) ?: throw InvalidStateException("Entrada não encontrada para a placa ${exitEvent.licensePlate}")
+        val entryEvent = getEventForTypeOrException(exitEvent.licensePlate, EventType.ENTRY)
 
-        val parkedEvent = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(
-            exitEvent.licensePlate, EventType.PARKED
-        ) ?: throw InvalidStateException("Evento PARKED não encontrado para a placa ${exitEvent.licensePlate}")
+        val parkedEvent = getEventForTypeOrException(exitEvent.licensePlate, EventType.PARKED)
 
         val spot = parkedEvent.spot
-            ?: throw InvalidStateException("Evento PARKED para ${exitEvent.licensePlate} sem spot associado")
+            ?: throw InvalidStateException("PARKED event for plate ${exitEvent.licensePlate} does not have a spot")
 
         val sector = spot.sector
         val occupancyRate: Double = parkedEvent.occupancyRate ?: 0.0
@@ -172,6 +169,13 @@ class WebhookEventService(
         spotRepository.save(managedSpot)
         logger.info("DESOCUPADO Spot [${spot.externalId}] com ID ${spot.id}")
         return revenueLog
+    }
+
+    private fun getEventForTypeOrException(licensePlate: String, eventType: EventType): ParkingEvent {
+        val entryEvent = parkingEventRepository.findTopByLicensePlateAndEventTypeOrderByEventTimeDesc(
+            licensePlate, eventType
+        ) ?: throw InvalidStateException("$eventType event not found for plate: ${licensePlate}")
+        return entryEvent
     }
 
 }
